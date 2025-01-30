@@ -31,7 +31,8 @@
         cp dict-la.scm $out/etc
         cp dict-ta.scm $out/etc
 
-        echo "#!${pkgs.chicken}/bin/csi" > $out/bin/wordle
+        # don't print banner and warnings
+        echo "#!${pkgs.chicken}/bin/csi -qw" > $out/bin/wordle
         chmod +x $out/bin/wordle
         cat main.scm >> $out/bin/wordle
 
