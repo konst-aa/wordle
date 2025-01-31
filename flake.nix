@@ -14,6 +14,8 @@
         sdl2-ttf
         srfi-13
         srfi-1
+        srfi-18
+        vector-lib
       ];
 
   in {
