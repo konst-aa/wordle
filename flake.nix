@@ -37,6 +37,14 @@
         chmod +x $out/bin/wordle
         cat main.scm >> $out/bin/wordle
 
+        echo "#!${pkgs.chicken}/bin/csi -qw" > $out/bin/wordle-multi
+        chmod +x $out/bin/wordle-multi
+        cat multiplayer.scm >> $out/bin/wordle-multi
+
+        echo "#!${pkgs.chicken}/bin/csi -qw" > $out/bin/wordle-server
+        chmod +x $out/bin/wordle-server
+        cat server.scm >> $out/bin/wordle-server
+
         for f in $out/bin/*
         do 
           wrapProgram $f \

@@ -231,8 +231,10 @@
   )
 
 (define (make-game uid p1 p2)
-  ; (list uid (list p1 (gen-goal) (list)) (list p2 (gen-goal) (list))))
-  (list uid (list p1 "BEERS" (list)) (list p2 "BEERS" (list))))
+  (list uid
+        (list p1 (string-upcase (gen-goal)) (list))
+        (list p2 (string-upcase (gen-goal)) (list))))
+  ; (list uid (list p1 "BEERS" (list)) (list p2 "BEERS" (list))))
 
 (define (start-game! p1 p2)
   (let ((uid (gensym)))
