@@ -273,9 +273,12 @@
     )
   )
 
-(define server (first (command-line-arguments)))
-(define me (second (command-line-arguments)))
-(define opp (third (command-line-arguments)))
+(define cla (drop (command-line-arguments) 2))
+
+
+(define server (first cla))
+(define me (second cla))
+(define opp (third cla))
 
 (display "trying to connect to: ")
 (display server)
