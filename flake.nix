@@ -19,7 +19,7 @@
         vector-lib
       ]);
     deriv = pkgs:
-      pkgs.stdenv.mkderivation {
+      pkgs.stdenv.mkDerivation {
       pname = "wordle";
       version = "0.0.0";
       src = ./.;
