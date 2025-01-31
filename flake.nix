@@ -46,8 +46,10 @@
         done
       '';
     };
+    packages.aarch64-darwin.wordle = self.packages.x86_64-linux.wordle;
 
     packages.x86_64-linux.default = self.packages.x86_64-linux.wordle;
+    packages.aarch64-darwin.default = self.packages.aarch64-darwin.wordle;
     devShells.x86_64-linux.default = pkgs.mkShell {
       buildInputs = deps;
     };
