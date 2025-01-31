@@ -24,7 +24,7 @@
       version = "0.0.0";
       src = ./.;
       buildInputs = deps pkgs;
-      installphase = ''
+      installPhase = ''
         mkdir -p $out/bin
         mkdir -p $out/etc
 
@@ -39,9 +39,9 @@
 
         for f in $out/bin/*
         do 
-          wrapprogram $f \
-           --set chicken_repository_path $chicken_repository_path \
-           --set wordle_etc $out/etc/
+          wrapProgram $f \
+           --set CHICKEN_REPOSITORY_PATH $CHICKEN_REPOSITORY_PATH \
+           --set WORDLE_ETC $out/etc/
         done
       '';
     };
