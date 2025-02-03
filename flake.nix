@@ -11,6 +11,7 @@
     deps = pkgs: (with pkgs.chickenPackages.chickenEggs; [
         pkgs.chicken
         pkgs.makeWrapper
+        pkgs.gnumake
         sdl2
         sdl2-ttf
         srfi-13
@@ -32,18 +33,9 @@
         cp dict-la.scm $out/etc
         cp dict-ta.scm $out/etc
 
-        # don't print banner and warnings
-        echo "#!${pkgs.chicken}/bin/csi -qw" > $out/bin/wordle
-        chmod +x $out/bin/wordle
-        cat main.scm >> $out/bin/wordle
+        make
 
-        echo "#!${pkgs.chicken}/bin/csi -qw" > $out/bin/wordle-multi
-        chmod +x $out/bin/wordle-multi
-        cat multiplayer.scm >> $out/bin/wordle-multi
-
-        echo "#!${pkgs.chicken}/bin/csi -qw" > $out/bin/wordle-server
-        chmod +x $out/bin/wordle-server
-        cat server.scm >> $out/bin/wordle-server
+        cp wordle-multiplayer wordle wordle-server $out/bin/
 
         for f in $out/bin/*
         do 

@@ -178,6 +178,10 @@
   (set! quit dl-ms)
 )
 
+(define to-heartbeat 0)
+(define my-timer 0)
+(define opp-timer 0)
+
 (define (input-loop! cont)
   (define ev (sdl2:poll-event! main-event))
   (if (not ev)
@@ -213,6 +217,7 @@
                (begin
                  (set! past-grid (append past-grid (list (check input-string))))
                  (set! input-string "")
+                 (set! my-timer 0)
                  )
                )
              )
@@ -273,7 +278,8 @@
     )
   )
 
-(define cla (drop (command-line-arguments) 2))
+; (define cla (drop (command-line-arguments) 2))
+(define cla (command-line-arguments))
 
 
 (define server (first cla))
@@ -287,24 +293,36 @@
 (define-values (inp out)
   (tcp-connect server 8123))
 
-(display "connection successful")
-(newline)
 
-(define identifier (read-newline inp))
+(write/flush (list (string->symbol me) (string->symbol opp)) out)
+(define identifier
+  (let ((res (read-newline inp)))
+    (case (first res)
+      ((connection-successful)
+       (display "connection successful with uid: ")
+       (display (second res))
+       (newline)
+       (second res)
+       )
+      ((name-taken)
+       (display "your username is taken: ")
+       (display me)
+       (newline)
+       (end-game! 1000)
+       )
+      (else 
+        (display res)
+        (newline)
+        )
+      )
+    )
+  )
+
+
 (define opp-name "Waiting...")
 (define opp-joined #f)
 
 
-
-
-
-
-(write/flush (list (string->symbol me) (string->symbol opp)) out)
-
-; (display identifier)
-; (newline)
-; (display (read inp))
-; (newline)
 
 (define RENDERS-PER-SECOND 30)
 (define MS-PER-RENDER (round (/ 1000 RENDERS-PER-SECOND)))
@@ -331,11 +349,13 @@
      ; (let-values (((_ name) vals))
        (set! opp-joined #t)
        (set! opp-name (symbol->string (second l)))
+       (set! prev-timer-time (current-process-milliseconds))
 
        ; )
      )
     ((opp-update)
      (set! opp-grid (append opp-grid (list (lookup-colors (second l)))))
+     (set! opp-timer 0)
      )
     ((opp-lost)
      ; (set! opp-grid (map lookup-colors (alist-ref 'opp-board (second l))))
@@ -356,10 +376,26 @@
      (display (alist-ref 'opp-word (cdr l)))
      (newline)
      )
+    ((dc)
+     (display "you were disconnected for reason: ")
+     (display (second l))
+     (newline)
+     )
+    ((opp-dc)
+     (display "your opponent was disconnected for reason: ")
+     (display (second l))
+     (newline)
+     )
     ((both-done)
      (set! opp-grid (map lookup-colors (alist-ref 'opp-board (cdr l))))
-     ; (end-game! 3000)
-
+     (display "the game is finished!")
+     (newline)
+     (display "your word was: ")
+     (display (alist-ref 'your-word (cdr l)))
+     (newline)
+     (display "opponents word was: ")
+     (display (alist-ref 'opp-word (cdr l)))
+     (newline)
 
      )
     )
@@ -375,7 +411,7 @@
                     (count (lambda (p) (eq? (cdr p) GREEN))
                            (vector->list row))))
                grid
-               (list 20 20 13 10 7 5)
+               (list 7 20 30 20 5 2)
                ))
          (total (foldl + 0 levels)))
     (if (every (lambda (p) (eq? (cdr p) GREEN))
@@ -385,6 +421,8 @@
 
   ))
 
+(define prev-timer-time 0)
+
 (define (main)
   ; make frame length uniform
   (sdl2:delay! (- MS-PER-RENDER
@@ -392,8 +430,14 @@
                           MS-PER-RENDER)))
   (set! prev-render-time (current-process-milliseconds))
 
+  (draw-text! (cons (floor (- (/ 480 2) 50)) 0)
+              (number->string my-timer))
+
+  (draw-text! (cons (+ 480 TILE-SIZE (floor (- (/ 480 2) 50))) 0)
+              (number->string opp-timer))
+
   (draw-text! (cons 0 0) me)
-  (draw-text! (cons (+ 480 TILE-SIZE) 0) opp-name)
+  (draw-text! (cons (+ 480 TILE-SIZE) 0) opp)
 
   (draw-text! (cons (- 480 100) 0)
               (number->string (calc-score past-grid))
@@ -405,18 +449,30 @@
 
   (with-control input-loop!)
 
-  (write/flush (list 'heartbeat) out)
+  (if (and opp-joined (> (- prev-render-time prev-timer-time) 1000))
+    (begin
+      (set! my-timer (+ my-timer 1))
+      (set! opp-timer (+ opp-timer 1))
+      (set! prev-timer-time (+ prev-timer-time 1000))
+      )
+    )
+
+  (if (> to-heartbeat 10)
+    (begin
+      (set! to-heartbeat 0)
+      (write/flush (list 'heartbeat) out))
+    (set! to-heartbeat (+ to-heartbeat 1))
+    )
 
   (if (char-ready? inp)
     (let ((res (read-newline inp)))
       (if (eof-object? res)
         (begin
-          (display "opponent dced. win by forfeit?")
+          (display "EOF reached")
+          (set! opp-joined #f)
           (newline)
-          (end-game! 1000)
           )
         (respond res)
-
         )
 
       )
