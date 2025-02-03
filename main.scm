@@ -125,7 +125,7 @@
   (for-each
     (lambda (i)
       (if (member (string-ref guess i) missing-goal)
-        (begin (delete! (string-ref guess i) missing-goal)
+        (begin (set! missing-goal (delete (string-ref guess i) missing-goal))
                (vector-set! color-vec i YELLOW))
         (vector-set! color-vec i GREY)
         )
